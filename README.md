@@ -1,2 +1,2 @@
 # basecoin
-this study basecoin demo
+this study basecoin demo.
