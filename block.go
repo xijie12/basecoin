@@ -2,23 +2,45 @@ package main
 
 import (
 	"crypto/sha256"
+	"time"
 )
 
 //0.定义结构
 type Block struct {
-	//1.前区块哈希
+	//1.版本号
+	Version uint64
+	//2.前区块哈希
 	PrevHash []byte
-	//2.当前区块哈希
+	//3.Merkel根（梅克尔根，这就是一个hash值）
+	MerkelRoot []byte
+	//4.时间戳
+	TimeStamp uint64
+	//5.难度值
+	Difficulty uint64
+	//6.随机数，挖矿要找的数据
+	Nonce uint64
+
+	//a.当前区块哈希 正常比特币区块中没有当前区块的哈希，为了方便做了简化
 	Hash []byte
-	//3.数据
+	//b.数据
 	Data []byte
+}
+
+func Uint64ToByte(num uint64) []byte{
+	//TODO
+	return []byte{}
 }
 
 //2.创建区块
 func NewBlock(data string, prevBlockHash []byte) *Block{
 	block := Block{
+		Version: 1,
 		PrevHash: prevBlockHash,
-		Hash: []byte{},//TODO
+		MerkelRoot: []byte{},
+		TimeStamp: uint64(time.Now().Unix()),
+		Difficulty: 3,
+		Nonce: 4,
+		Hash: []byte{},
 		Data: []byte(data),
 	}
 
@@ -29,12 +51,22 @@ func NewBlock(data string, prevBlockHash []byte) *Block{
 
 //3.生成哈希
 func (block *Block) SetHash() {
-	//TODO
+	var blockInfo []byte
 	//1.设置数据
-	blockInfo := append(block.PrevHash, block.Data...)
+	blockInfo = append(blockInfo, Uint64ToByte(block.Version)...)
+	blockInfo = append(blockInfo, block.PrevHash...)
+	blockInfo = append(blockInfo, block.MerkelRoot...)
+	blockInfo = append(blockInfo, Uint64ToByte(block.TimeStamp)...)
+	blockInfo = append(blockInfo, Uint64ToByte(block.Difficulty)...)
+	blockInfo = append(blockInfo, Uint64ToByte(block.Nonce)...)
+	blockInfo = append(blockInfo, block.Hash...)
+	blockInfo = append(blockInfo, block.Data...)
+
 	//2.sha256
+	//(一)
 	hash := sha256.Sum256(blockInfo)
 	block.Hash = hash[:]
+	//（二）
 	/*myHash := sha256.New()
 	bData := []byte(data)
 	myHash.Write(bData)
