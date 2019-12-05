@@ -45,8 +45,8 @@ func NewBlock(data string, prevBlockHash []byte) *Block{
 		PrevHash: prevBlockHash,
 		MerkelRoot: []byte{},
 		TimeStamp: uint64(time.Now().Unix()),
-		Difficulty: 3,
-		Nonce: 4,
+		Difficulty: 0,
+		Nonce: 0,
 		Hash: []byte{},
 		Data: []byte(data),
 	}
