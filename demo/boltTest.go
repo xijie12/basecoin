@@ -3,6 +3,7 @@ package main
 import (
 	"gocode/20190724/go-bili/basecoin/bolt"
 	"fmt"
+	"log"
 )
 
 func main(){
@@ -28,6 +29,9 @@ func main(){
 
 	db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("b1"))
+		if b ==nil {
+			log.Panic("bucket b1 没有")
+		}
 		v := b.Get([]byte("1"))
 		v1 := b.Get([]byte("2"))
 		fmt.Printf("The answer is: %s\n", v)
