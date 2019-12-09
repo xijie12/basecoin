@@ -19,7 +19,7 @@ func NewProofOfWork(block *Block) *ProofOfWork{
 		block : block,
 	}
 	//指定难度值
-	targeStr := "0001000000000000000000000000000000000000000000000000000000000000"
+	targeStr := "0000100000000000000000000000000000000000000000000000000000000000"
 	//引入辅助变量
 	tmpInt := big.Int{}
 	//将难度值赋值给big.Int,使用16进制格式
@@ -34,6 +34,7 @@ func (pow *ProofOfWork) Run() ([]byte, uint64){
 	block := pow.block
 	var hash [32]byte
 
+	fmt.Println("开始挖矿。。。")
 	for {
 		//1.拼装数据（区块的数据，还有不断变化的随机数）
 		tmp := [][]byte{

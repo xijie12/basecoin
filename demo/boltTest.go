@@ -29,7 +29,7 @@ func main(){
 
 	db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("b1"))
-		if b ==nil {
+		if b == nil {
 			log.Panic("bucket b1 没有")
 		}
 		v := b.Get([]byte("1"))
