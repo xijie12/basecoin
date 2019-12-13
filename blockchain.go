@@ -3,6 +3,7 @@ package main
 import (
 	"gocode/20190724/go-bili/basecoin/bolt"
 	"fmt"
+	"log"
 )
 
 //4.引入区块链
@@ -31,7 +32,7 @@ func NewBlockChain() *BlockChain {
 	if err != nil {
 		fmt.Println(err)
 	}
-	defer db.Close()
+	//defer db.Close()
 
 	db.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(blockBucket))
@@ -42,9 +43,15 @@ func NewBlockChain() *BlockChain {
 			}
 			//创建一个创世块，并作为第一个区块添加到区块链中
 			genesisBlock := GenesisBlock()
-			bucket.Put(genesisBlock.Hash,genesisBlock.toByte())
+			bucket.Put(genesisBlock.Hash,genesisBlock.Serialize())
 			bucket.Put([]byte("lastHashKey"),genesisBlock.Hash)
 			lastHash = genesisBlock.Hash
+
+			//测试0
+			//blockBytes := bucket.Get(genesisBlock.Hash)
+			//block := Deserialize(blockBytes)
+			//fmt.Printf("block info: %v\n", block)
+
 		} else {
 			lastHash = bucket.Get([]byte("lastHashKey"))
 		}
@@ -60,10 +67,25 @@ func GenesisBlock() *Block{
 }
 //6.添加区块
 func (bc *BlockChain) AddBlock(data string){
-	/*//获取最后一个区块
-	lastBlock := bc.blocks[len(bc.blocks) - 1]
-	prevHash := lastBlock.Hash
+	//获取前一个区块的哈希
+	db := bc.db
+	lastHash := bc.tail
+	db.Update(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(blockBucket))
+		if bucket == nil {
+			log.Panic("bucket 不存在，请检查！")
+		}
 
-	block := NewBlock(data, prevHash)
-	bc.blocks = append(bc.blocks,block)*/
+		//创建一个区块
+		block := NewBlock(data, lastHash)
+
+		//更新bolt上一个区块哈希
+		bucket.Put(block.Hash,block.Serialize())
+		bucket.Put([]byte("lastHashKey"),block.Hash)
+
+		//更新内存中的上一个区块哈希
+		bc.tail = block.Hash
+
+		return nil
+	})
 }

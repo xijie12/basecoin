@@ -6,6 +6,8 @@ import (
 	"encoding/binary"
 	"bytes"
 	"log"
+	"encoding/gob"
+	"fmt"
 )
 
 //0.定义结构
@@ -62,9 +64,32 @@ func NewBlock(data string, prevBlockHash []byte) *Block{
 	return &block
 }
 
-func (block *Block) toByte() []byte {
+//序列化
+func (block *Block) Serialize() []byte {
+	var buffer bytes.Buffer
+	//使用gob进行序列化（编码）得到字节流
+	//1.定义一个编码器
+	//2.使用编码器进行编码
+	enc := gob.NewEncoder(&buffer)
+	err := enc.Encode(&block)
+	if err != nil {
+		fmt.Println(err)
+	}
+	//fmt.Printf("编码之后：%v\n", buffer.Bytes())
+	return buffer.Bytes()
+}
 
-	return []byte{}
+//反序列化
+func Deserialize(data []byte) Block {
+
+	var block Block
+	dec := gob.NewDecoder(bytes.NewReader(data))
+	err := dec.Decode(&block)
+	if err != nil {
+		log.Fatal("decode:", err)
+	}
+
+	return block
 }
 
 /*//3.生成哈希
