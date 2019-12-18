@@ -4,6 +4,7 @@ import (
 	"gocode/20190724/go-bili/basecoin/bolt"
 	"fmt"
 	"log"
+	"bytes"
 )
 
 //4.引入区块链
@@ -19,7 +20,7 @@ type BlockChain struct {
 const blockChainDb = "D:/lubo/gowork/src/gocode/20190724/go-bili/basecoin/blockChain.db"
 const blockBucket = "blockBucket"
 //5.定义一个区块链
-func NewBlockChain() *BlockChain {
+func NewBlockChain(address string) *BlockChain {
 
 	//return &BlockChain{
 	//	blocks: []*Block{genesisBlock},
@@ -42,7 +43,7 @@ func NewBlockChain() *BlockChain {
 				return fmt.Errorf("create bucket: %s", err)
 			}
 			//创建一个创世块，并作为第一个区块添加到区块链中
-			genesisBlock := GenesisBlock()
+			genesisBlock := GenesisBlock(address)
 			bucket.Put(genesisBlock.Hash,genesisBlock.Serialize())
 			bucket.Put([]byte("lastHashKey"),genesisBlock.Hash)
 			lastHash = genesisBlock.Hash
@@ -62,11 +63,12 @@ func NewBlockChain() *BlockChain {
 	return &BlockChain{db, lastHash}
 }
 //定义一个创世块
-func GenesisBlock() *Block{
-	return NewBlock("Go一期创世块。", []byte{})
+func GenesisBlock(address string) *Block{
+	coinbase := NewCoinbaseTX(address, "Go一期创世块。")
+	return NewBlock([]*Transaction{coinbase}, []byte{})
 }
 //6.添加区块
-func (bc *BlockChain) AddBlock(data string){
+func (bc *BlockChain) AddBlock(txs []*Transaction){
 	//获取前一个区块的哈希
 	db := bc.db
 	lastHash := bc.tail
@@ -77,7 +79,7 @@ func (bc *BlockChain) AddBlock(data string){
 		}
 
 		//创建一个区块
-		block := NewBlock(data, lastHash)
+		block := NewBlock(txs, lastHash)
 
 		//更新bolt上一个区块哈希
 		bucket.Put(block.Hash,block.Serialize())
@@ -88,4 +90,36 @@ func (bc *BlockChain) AddBlock(data string){
 
 		return nil
 	})
+}
+
+func (bc *BlockChain) PrintChain() {
+	blockHeight := 0
+	bc.db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("blockBucket"))
+		b.ForEach(func(k, v []byte) error {
+			if bytes.Equal(k, []byte("LastHashKey")){
+				return nil
+			}
+			block := Deserialize(v)
+			fmt.Printf("===================区块链高度：%d====================\n", blockHeight)
+			blockHeight++
+			fmt.Printf("版本号： %d\n", block.Version)
+			fmt.Printf("前区块哈希值： %x\n", block.PrevHash)
+			fmt.Printf("梅克尔根： %x\n", block.MerkelRoot)
+			fmt.Printf("时间戳： %d\n", block.TimeStamp)
+			fmt.Printf("难度值： %d\n", block.Difficulty)
+			fmt.Printf("随机数： %d\n", block.Nonce)
+			fmt.Printf("当前区块哈希值： %x\n", block.Hash)
+			fmt.Printf("区块数据： %s\n", block.Transactions[0].TXInputs[0].Sig)
+			return nil
+		})
+		return nil
+	})
+}
+
+//找到指定地址的所有UTXO
+func (bc *BlockChain) FindUTXOs(address string) []TXOutput {
+	var UTXO []TXOutput
+
+	return UTXO
 }

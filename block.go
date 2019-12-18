@@ -28,7 +28,9 @@ type Block struct {
 	//a.当前区块哈希 正常比特币区块中没有当前区块的哈希，为了方便做了简化
 	Hash []byte
 	//b.数据
-	Data []byte
+	//Data []byte
+	//真实的交易数组
+	Transactions []*Transaction
 }
 
 func Uint64ToByte(num uint64) []byte{
@@ -41,7 +43,7 @@ func Uint64ToByte(num uint64) []byte{
 }
 
 //2.创建区块
-func NewBlock(data string, prevBlockHash []byte) *Block{
+func NewBlock(txs []*Transaction, prevBlockHash []byte) *Block{
 	block := Block{
 		Version: 1,
 		PrevHash: prevBlockHash,
@@ -50,8 +52,11 @@ func NewBlock(data string, prevBlockHash []byte) *Block{
 		Difficulty: 0,
 		Nonce: 0,
 		Hash: []byte{},
-		Data: []byte(data),
+		//Data: []byte(data),
+		Transactions: txs,
 	}
+
+	block.MerkelRoot = block.MakeMerkelRoot()
 
 	//block.SetHash()
 	//创建一个pow对象
@@ -129,3 +134,9 @@ func (block *Block) SetHash() {
 	res := myHash.Sum(nil)
 	block.Hash = res
 }*/
+
+//模拟梅克尔根，只是对交易的数据做简单的拼接，而不做二叉树处理
+func (block *Block) MakeMerkelRoot() []byte {
+
+	return []byte{}
+}

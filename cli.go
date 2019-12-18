@@ -12,7 +12,9 @@ type CLI struct {
 
 const Usage = `
 	addBlock --data Data		"add data to blockChain"
-	printChain					"print all blockChain data"
+	printChain					"正向打印区块链"
+	printChainR					"反向打印区块链"
+	getBalance --address ADDRESS "获取指定地址的余额"
 `
 
 func (cli *CLI) Run(){
@@ -34,9 +36,29 @@ func (cli *CLI) Run(){
 				fmt.Printf(Usage)
 			}
 		case "printChain":
-			//打印区块
+			//正向打印区块
 			cli.PrintBlockChain()
+		case "printChainR":
+			//反向打印区块
+			cli.PrintBlockChainReverse()
+		case "getBalance":
+			//获取余额
+			if len(args) == 4 && args[2] == "--address" {
+				address := args[3]
+				cli.GetBalance(address)
+			}
+
 		default:
 			fmt.Println(Usage)
 	}
+}
+
+func (cli * CLI) GetBalance(address string) {
+	utxos := cli.bc.FindUTXOs(address)
+	total := 0.0
+	for _,utxo := range utxos {
+		total += utxo.Value
+	}
+
+	fmt.Printf("\"%s\" 的余额为: %f\n", address, total)
 }
