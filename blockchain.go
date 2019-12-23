@@ -149,19 +149,23 @@ func (bc *BlockChain) FindUTXOs(address string) []TXOutput {
 				}
 			}
 
-			//4.遍历input，找到该地址花费过的UTXO的集合（把花费过的标识出来）
-			for _, input := range tx.TXInputs {
-				//判断一下当前这个input和目标（李四）是否一致，如果相同，说明是李四消费过的output，就加进来
-				if input.Sig == address {
-					//spentOutputs := make(map[string][]int64)
-					//indexArray := spentOutputs[string(input.TXid)]
-					//indexArray = append(indexArray, input.Index)
-					spentOutputs[string(input.TXid)] = append(spentOutputs[string(input.TXid)], input.Index)
-					//map["222"] = []int64{0}
-					//map["333"] = []int64{0,1}
+			//如果当前交易是挖矿交易，那么不做遍历，直接跳过
+			if !tx.IsCoinbase() {
+				//4.遍历input，找到该地址花费过的UTXO的集合（把花费过的标识出来）
+				for _, input := range tx.TXInputs {
+					//判断一下当前这个input和目标（李四）是否一致，如果相同，说明是李四消费过的output，就加进来
+					if input.Sig == address {
+						//spentOutputs := make(map[string][]int64)
+						//indexArray := spentOutputs[string(input.TXid)]
+						//indexArray = append(indexArray, input.Index)
+						spentOutputs[string(input.TXid)] = append(spentOutputs[string(input.TXid)], input.Index)
+						//map["222"] = []int64{0}
+						//map["333"] = []int64{0,1}
+					}
 				}
+			} else {
+				fmt.Println("这是coinbase不做遍历！")
 			}
-
 		}
 		if len(block.PrevHash) == 0 {
 			fmt.Println("区块链遍历完成退出")

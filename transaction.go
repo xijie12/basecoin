@@ -39,6 +39,20 @@ func (tx *Transaction) SetHash() {
 	hash := sha256.Sum256(data)
 	tx.TXID = hash[:]
 }
+
+func (tx *Transaction) IsCoinbase() bool {
+	//1.交易input只有一个
+	if len(tx.TXInputs) == 1 {
+		input := tx.TXInputs[0]
+		//2.交易id为空
+		//3/交易的index为-1
+		if !bytes.Equal(input.TXid, []byte{}) || input.Index != -1 {
+			return false
+		}
+	}
+	return true
+}
+
 //2.提供创建交易方法(挖矿交易）
 func NewCoinbaseTX(address string, data string) *Transaction {
 	//挖矿交易的特点：
@@ -48,6 +62,7 @@ func NewCoinbaseTX(address string, data string) *Transaction {
 	//矿工由于挖矿时无需指定签名，所以sig字段可以由矿工自由填写数据，一般填写矿池名字
 	input := TXInput{[]byte{},-1,data}
 	output := TXOutput{reward, address}
+	//对于挖矿交易，只有一个input和一个output
 	tx := Transaction{[]byte{},[]TXInput{input},[]TXOutput{output}}
 	tx.SetHash()
 
