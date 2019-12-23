@@ -120,6 +120,52 @@ func (bc *BlockChain) PrintChain() {
 //找到指定地址的所有UTXO
 func (bc *BlockChain) FindUTXOs(address string) []TXOutput {
 	var UTXO []TXOutput
+	//定义一个map来保存消费过的output，key是这个output的交易id，value是这个交易中索引的数组
+	spentOutputs := make(map[string][]int64)
 
+	it := bc.NewIterator()
+	for {
+		//1.遍历区块
+		block := it.Next()
+		//2.遍历交易
+		for _, tx := range block.Transactions {
+			fmt.Printf("current txid: %x\n", tx.TXID)
+
+			OUTPUT:
+			//3.遍历output，找到与指定地址有关的utxo（在添加utxo自前检查是否已经消耗过）
+			for i, output := range tx.TXOutputs {
+				fmt.Printf("current index: %d\n", i)
+				//如果当前的交易id存在于我们伊宁表示的map，那么说明这个交易里面有消耗过的output
+				if spentOutputs[string(tx.TXID)] != nil {
+					for _, j := range spentOutputs[string(tx.TXID)] {
+						if int64(i) == j {
+							continue OUTPUT
+						}
+					}
+				}
+				//这个output和目标地址相同，满足条件加到返回utxo中
+				if output.PubKeyHash == address {
+					UTXO = append(UTXO, output)
+				}
+			}
+
+			//4.遍历input，找到该地址花费过的UTXO的集合（把花费过的标识出来）
+			for _, input := range tx.TXInputs {
+				//判断一下当前这个input和目标（李四）是否一致，如果相同，说明是李四消费过的output，就加进来
+				if input.Sig == address {
+					//spentOutputs := make(map[string][]int64)
+					indexArray := spentOutputs[string(input.TXid)]
+					indexArray = append(indexArray, input.Index)
+					//map["222"] = []int64{0}
+					//map["333"] = []int64{0,1}
+				}
+			}
+
+		}
+		if len(block.PrevHash) == 0 {
+			fmt.Println("区块链遍历完成退出")
+			break
+		}
+	}
 	return UTXO
 }
