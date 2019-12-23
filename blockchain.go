@@ -154,8 +154,9 @@ func (bc *BlockChain) FindUTXOs(address string) []TXOutput {
 				//判断一下当前这个input和目标（李四）是否一致，如果相同，说明是李四消费过的output，就加进来
 				if input.Sig == address {
 					//spentOutputs := make(map[string][]int64)
-					indexArray := spentOutputs[string(input.TXid)]
-					indexArray = append(indexArray, input.Index)
+					//indexArray := spentOutputs[string(input.TXid)]
+					//indexArray = append(indexArray, input.Index)
+					spentOutputs[string(input.TXid)] = append(spentOutputs[string(input.TXid)], input.Index)
 					//map["222"] = []int64{0}
 					//map["333"] = []int64{0,1}
 				}
