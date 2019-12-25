@@ -174,3 +174,87 @@ func (bc *BlockChain) FindUTXOs(address string) []TXOutput {
 	}
 	return UTXO
 }
+
+//根据需求找到合理的utxo
+func (bc *BlockChain)FindNeedUTXOs(from string, amount float64) (map[string][]int64, float64){
+	//找到的合理utxo集合
+	utxos := make(map[string][]int64)
+
+	spentOutputs := make(map[string][]int64)
+	//找到的utxos里面包含前的总数
+	var calc float64
+
+	//创建迭代器
+	it := bc.NewIterator()
+
+	for {
+		//1.遍历区块
+		block := it.Next()
+
+		//2.遍历交易
+		for _, tx := range block.Transactions {
+			fmt.Printf("current txid:%x\n",tx.TXID)
+
+			OUTPUT:
+			//3.遍历output，找到和自己相关的utxo（在添加output之前检查是否已经消耗过）
+			for i, output := range tx.TXOutputs {
+				fmt.Printf("current index: %d\n", i)
+				//如果当前的交易id存在于我们伊宁表示的map，那么说明这个交易里面有消耗过的output
+				if spentOutputs[string(tx.TXID)] != nil {
+					for _, j := range spentOutputs[string(tx.TXID)] {
+						if int64(i) == j {
+							continue OUTPUT
+						}
+					}
+				}
+				//这个output和目标地址相同，满足条件,加到返回utxo数组中
+				if output.PubKeyHash == from {
+					//3.比较是否满足转账需求
+					//	a.满足，直接返回 utxo，calc
+					//	b.不满足继续统计
+					if calc < amount {
+						//1.把utxo加进来
+						//utxos := make(map[string][]int64)
+						//array := utxos[string(tx.TXID)]
+						//array = append(array, int64(i))
+						utxos[string(tx.TXID)] = append(utxos[string(tx.TXID)],int64(i))
+						//2.统计一下当前utxo的总e
+						calc += output.Value
+
+						if calc >= amount {
+							fmt.Printf("找到了满足金额：%f\n", calc)
+							return utxos, calc
+						}
+					} else {
+						fmt.Printf("不满足转账金额，当前总额：%f, 目标金额：%f\n", calc, amount)
+					}
+				}
+			}
+
+			//如果当前交易是挖矿交易，那么不做遍历，直接跳过
+			if !tx.IsCoinbase() {
+				//4.遍历input，找到该地址花费过的UTXO的集合（把花费过的标识出来）
+				for _, input := range tx.TXInputs {
+					//判断一下当前这个input和目标（李四）是否一致，如果相同，说明是李四消费过的output，就加进来
+					if input.Sig == from {
+						//spentOutputs := make(map[string][]int64)
+						//indexArray := spentOutputs[string(input.TXid)]
+						//indexArray = append(indexArray, input.Index)
+						spentOutputs[string(input.TXid)] = append(spentOutputs[string(input.TXid)], input.Index)
+						//map["222"] = []int64{0}
+						//map["333"] = []int64{0,1}
+					}
+				}
+			} else {
+				fmt.Println("这是coinbase不做遍历！")
+			}
+		}
+
+		if len(block.PrevHash) == 0 {
+			fmt.Println("区块链遍历完成退出")
+			break
+		}
+	}
+
+	return utxos, calc
+}
