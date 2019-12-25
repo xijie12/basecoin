@@ -46,17 +46,17 @@ func (cli * CLI) GetBalance(address string) {
 }
 
 func (cli *CLI) Send(from, to string, amount float64,miner, data string) {
-	fmt.Printf("from： %s\n", from)
-	fmt.Printf("to： %s\n", to)
-	fmt.Printf("amount： %f\n", amount)
-	fmt.Printf("miner： %s\n", miner)
-	fmt.Printf("data： %s\n", data)
+	//fmt.Printf("from： %s\n", from)
+	//fmt.Printf("to： %s\n", to)
+	//fmt.Printf("amount： %f\n", amount)
+	//fmt.Printf("miner： %s\n", miner)
+	//fmt.Printf("data： %s\n", data)
 	//1.创建挖矿交易
 	coinbase := NewCoinbaseTX(miner, data)
 	//2.创建一个普通交易
 	tx := NewTransaction(from, to, amount, cli.bc)
 	if tx == nil {
-		fmt.Printf("无效的交易")
+		//fmt.Printf("无效的交易")
 		return
 	}
 	//3.添加到区块
