@@ -8,6 +8,7 @@ import (
 	"log"
 	"encoding/gob"
 	"fmt"
+	"crypto/sha256"
 )
 
 //0.定义结构
@@ -137,6 +138,13 @@ func (block *Block) SetHash() {
 
 //模拟梅克尔根，只是对交易的数据做简单的拼接，而不做二叉树处理
 func (block *Block) MakeMerkelRoot() []byte {
-
-	return []byte{}
+	var info []byte
+	//var finalInfo [][]byte
+	for _, tx := range block.Transactions {
+		//将交易的哈希值拼接起来，在整体做哈希处理
+		info = append(info, tx.TXID...)
+		//finalInfo = [][]byte{tx.TXID}
+	}
+	hash := sha256.Sum256(info)
+	return hash[:]
 }

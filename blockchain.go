@@ -33,7 +33,7 @@ func NewBlockChain(address string) *BlockChain {
 	if err != nil {
 		fmt.Println(err)
 	}
-	//defer db.Close()
+	defer db.Close()
 
 	db.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(blockBucket))
